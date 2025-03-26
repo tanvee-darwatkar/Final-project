@@ -7,21 +7,28 @@ import Home from "@/pages/Home";
 import DemoPage from "@/pages/DemoPage";
 import Features from "@/pages/Features";
 import Pricing from "@/pages/Pricing";
+import AuthPage from "@/pages/auth-page";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import { AuthProvider } from "@/hooks/use-auth";
+import { ProtectedRoute } from "@/lib/protected-route";
 
 function Router() {
+  const [location] = useLocation();
+  const showHeaderFooter = location !== "/auth";
+  
   return (
     <>
-      <Header />
+      {showHeaderFooter && <Header />}
       <Switch>
         <Route path="/" component={Home} />
-        <Route path="/demo" component={DemoPage} />
+        <ProtectedRoute path="/demo" component={DemoPage} />
         <Route path="/features" component={Features} />
         <Route path="/pricing" component={Pricing} />
+        <Route path="/auth" component={AuthPage} />
         <Route component={NotFound} />
       </Switch>
-      <Footer />
+      {showHeaderFooter && <Footer />}
     </>
   );
 }
@@ -29,8 +36,10 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router />
-      <Toaster />
+      <AuthProvider>
+        <Router />
+        <Toaster />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
