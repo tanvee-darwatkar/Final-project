@@ -1,7 +1,6 @@
 import { storage } from './storage';
 import { InsertKeyword, InsertSearchHistory } from '@shared/schema';
 import { getRandomInt } from '../client/src/lib/utils';
-import { convertToCSV } from '../client/src/lib/utils';
 
 // Sample data to generate realistic-looking keyword metrics
 const generateRelatedKeywords = (baseKeyword: string): InsertKeyword[] => {
@@ -176,10 +175,58 @@ export const keywordService = {
       'Intent': item.intent,
       'Relevance': item.relevance,
       'Countries': JSON.parse(item.countries)
-        .map(c => `${c.country}: ${c.percentage}%`)
+        .map((c: {country: string, percentage: number}) => `${c.country}: ${c.percentage}%`)
         .join(', '),
     }));
     
-    return convertToCSV(formattedData);
+    // Server-side implementation of CSV conversion
+    return this.convertToCSV(formattedData);
+  },
+  
+  // Server-side implementation of CSV conversion
+  convertToCSV(objArray: any[]): string {
+    if (!objArray || objArray.length === 0) {
+      return '';
+    }
+    
+    const array = typeof objArray !== 'object' ? JSON.parse(objArray) : objArray;
+    let csv = '';
+
+    // Add headers
+    const headers = Object.keys(array[0]);
+    csv += headers.join(',') + '\r\n';
+
+    // Add data rows
+    for (let i = 0; i < array.length; i++) {
+      let line = '';
+      for (const index in headers) {
+        if (line !== '') line += ',';
+        const header = headers[index];
+        let value = array[i][header];
+        
+        // Handle undefined or null values
+        if (value === undefined || value === null) {
+          value = '';
+        }
+        
+        // Handle strings with commas, quotes, or newlines by wrapping in quotes
+        if (typeof value === 'string') {
+          // Escape quotes by doubling them
+          if (value.includes('"')) {
+            value = value.replace(/"/g, '""');
+          }
+          
+          // Wrap in quotes if it contains commas, quotes, or newlines
+          if (value.includes(',') || value.includes('"') || value.includes('\n') || value.includes('\r')) {
+            value = `"${value}"`;
+          }
+        }
+        
+        line += value;
+      }
+      csv += line + '\r\n';
+    }
+
+    return csv;
   }
 };
