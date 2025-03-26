@@ -1,14 +1,41 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
-import { Menu, X, BarChart2 } from 'lucide-react';
+import { Menu, X, BarChart2, LogOut, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/use-auth';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const Header = () => {
   const [location] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, logoutMutation } = useAuth();
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const handleLogout = () => {
+    logoutMutation.mutate();
+  };
+
+  // Get initials for avatar
+  const getInitials = () => {
+    if (!user) return "?";
+    if (user.name) {
+      return user.name.split(" ")
+        .map(part => part[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2);
+    }
+    return user.username.slice(0, 2).toUpperCase();
   };
 
   const navigationItems = [
@@ -43,9 +70,39 @@ const Header = () => {
           </nav>
           
           <div className="flex items-center space-x-4">
-            <Link href="/#waitlist">
-              <Button className="bg-primary hover:bg-primary/90">Join Waitlist</Button>
-            </Link>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback>{getInitials()}</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <div className="flex items-center justify-start gap-2 p-2">
+                    <div className="flex flex-col space-y-0.5 leading-none">
+                      <p className="font-medium text-sm text-black">{user.name || user.username}</p>
+                      <p className="text-xs text-neutral-500">{user.email}</p>
+                    </div>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Log out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link href="/auth">
+                <Button variant="outline" className="mr-2">Login</Button>
+              </Link>
+            )}
+            {!user && (
+              <Link href="/#waitlist">
+                <Button className="bg-primary hover:bg-primary/90">Join Waitlist</Button>
+              </Link>
+            )}
             <button 
               className="md:hidden text-neutral-700" 
               onClick={toggleMobileMenu}

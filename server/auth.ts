@@ -6,7 +6,8 @@ import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
 import { User as UserType } from "@shared/schema";
-import { fromZodError, ZodError } from "zod-validation-error";
+import { fromZodError } from "zod-validation-error";
+import { ZodError } from "zod";
 import { insertUserSchema } from "@shared/schema";
 
 declare global {
@@ -110,8 +111,8 @@ export function setupAuth(app: Express): void {
         }
         return res.status(201).json(user);
       });
-    } catch (error) {
-      if (error.name === "ZodError") {
+    } catch (error: unknown) {
+      if (error instanceof ZodError) {
         const validationError = fromZodError(error);
         return res.status(400).json({ message: validationError.message });
       }
@@ -138,7 +139,7 @@ export function setupAuth(app: Express): void {
   });
 
   app.post("/api/logout", (req, res, next) => {
-    req.logout((err) => {
+    req.logout((err: Error | null) => {
       if (err) {
         return next(err);
       }
