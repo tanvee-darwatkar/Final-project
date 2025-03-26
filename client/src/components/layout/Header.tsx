@@ -129,6 +129,45 @@ const Header = () => {
                 {item.name}
               </Link>
             ))}
+            
+            {/* Auth options in mobile menu */}
+            <div className="border-t pt-4 mt-2">
+              {user ? (
+                <div className="space-y-3">
+                  <div className="flex items-center">
+                    <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center mr-2">
+                      {getInitials()}
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">{user.name || user.username}</p>
+                      <p className="text-xs text-neutral-500">{user.email}</p>
+                    </div>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start text-neutral-700"
+                    onClick={() => {
+                      handleLogout();
+                      setIsMobileMenuOpen(false);
+                    }}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Log out
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-col space-y-2">
+                  <Link href="/auth" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button variant="outline" className="w-full">Login</Button>
+                  </Link>
+                  {!user && (
+                    <Link href="/#waitlist" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Button className="w-full">Join Waitlist</Button>
+                    </Link>
+                  )}
+                </div>
+              )}
+            </div>
           </nav>
         </div>
       )}
