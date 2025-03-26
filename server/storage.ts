@@ -98,13 +98,20 @@ export class MemStorage implements IStorage {
     return Array.from(this.searchHistory.values())
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   }
+  
+  async getUserSearchHistory(userId: number): Promise<SearchHistory[]> {
+    return Array.from(this.searchHistory.values())
+      .filter(search => search.userId === userId)
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  }
 
   async createSearchHistory(search: InsertSearchHistory): Promise<SearchHistory> {
     const id = this.currentSearchId++;
     const newSearch: SearchHistory = { 
       ...search, 
       id, 
-      timestamp: new Date() 
+      timestamp: new Date(),
+      userId: search.userId || null
     };
     this.searchHistory.set(id, newSearch);
     return newSearch;

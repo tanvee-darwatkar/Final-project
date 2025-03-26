@@ -6,11 +6,23 @@ import { insertWaitlistSchema } from "@shared/schema";
 import { z } from "zod";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
+import { setupAuth } from "./auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Set up authentication
+  setupAuth(app);
+  
   // API routes
   
-  // Search history endpoint
+  // Middleware to check if user is authenticated
+  const isAuthenticated = (req: Request, res: Response, next: Function) => {
+    if (req.isAuthenticated()) {
+      return next();
+    }
+    res.status(401).json({ message: "You must be logged in to access this resource" });
+  };
+
+  // Search history endpoint (public history)
   app.get("/api/keywords/history", async (req, res) => {
     try {
       const history = await keywordService.getSearchHistory();
@@ -18,6 +30,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching search history:", error);
       res.status(500).json({ message: "Failed to fetch search history" });
+    }
+  });
+  
+  // User-specific search history endpoint (protected)
+  app.get("/api/user/keywords/history", isAuthenticated, async (req, res) => {
+    try {
+      // @ts-ignore - TypeScript doesn't recognize req.user.id properly here
+      const userId = req.user.id;
+      const history = await storage.getUserSearchHistory(userId);
+      res.json(history);
+    } catch (error) {
+      console.error("Error fetching user search history:", error);
+      res.status(500).json({ message: "Failed to fetch user search history" });
     }
   });
 
@@ -30,7 +55,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Valid keyword is required" });
       }
       
-      const keywordData = await keywordService.searchKeywords(keyword);
+      // Get the user ID if authenticated
+      const userId = req.isAuthenticated() ? (req.user as any).id : undefined;
+      
+      const keywordData = await keywordService.searchKeywords(keyword, userId);
       res.json(keywordData);
     } catch (error) {
       console.error("Error searching keywords:", error);

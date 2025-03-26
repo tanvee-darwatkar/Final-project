@@ -113,9 +113,12 @@ const generateRelatedKeywords = (baseKeyword: string): InsertKeyword[] => {
 };
 
 export const keywordService = {
-  async searchKeywords(keyword: string) {
-    // Record the search in history
-    const searchEntry: InsertSearchHistory = { keyword };
+  async searchKeywords(keyword: string, userId?: number) {
+    // Record the search in history (associate with user if logged in)
+    const searchEntry: InsertSearchHistory = { 
+      keyword,
+      userId: userId || null
+    };
     await storage.createSearchHistory(searchEntry);
     
     // Check if we already have data for this keyword
@@ -144,6 +147,13 @@ export const keywordService = {
   
   async getSearchHistory() {
     const history = await storage.getSearchHistory();
+    return {
+      searches: history,
+    };
+  },
+  
+  async getUserSearchHistory(userId: number) {
+    const history = await storage.getUserSearchHistory(userId);
     return {
       searches: history,
     };
