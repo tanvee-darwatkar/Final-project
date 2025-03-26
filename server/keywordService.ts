@@ -18,7 +18,17 @@ const generateRelatedKeywords = (baseKeyword: string): InsertKeyword[] => {
     volume: getRandomInt(5000, 30000),
     competition: parseFloat((Math.random() * 0.9 + 0.1).toFixed(2)),
     cpc: parseFloat((Math.random() * 7 + 2).toFixed(2)),
-    trend: JSON.stringify(Array.from({ length: 5 }, () => getRandomInt(50, 100)))
+    trend: JSON.stringify(Array.from({ length: 5 }, () => getRandomInt(50, 100))),
+    difficulty: getRandomInt(20, 80),
+    intent: ['informational', 'commercial', 'transactional', 'navigational'][getRandomInt(0, 3)],
+    relevance: getRandomInt(60, 100),
+    countries: JSON.stringify([
+      { country: 'United States', percentage: getRandomInt(30, 60) },
+      { country: 'United Kingdom', percentage: getRandomInt(10, 25) },
+      { country: 'Canada', percentage: getRandomInt(5, 15) },
+      { country: 'Australia', percentage: getRandomInt(5, 10) },
+      { country: 'Other', percentage: getRandomInt(5, 20) }
+    ])
   });
   
   // Add keyword with prefixes
@@ -30,7 +40,17 @@ const generateRelatedKeywords = (baseKeyword: string): InsertKeyword[] => {
         volume: getRandomInt(1000, 15000),
         competition: parseFloat((Math.random() * 0.9 + 0.1).toFixed(2)),
         cpc: parseFloat((Math.random() * 7 + 2).toFixed(2)),
-        trend: JSON.stringify(Array.from({ length: 5 }, () => getRandomInt(50, 100)))
+        trend: JSON.stringify(Array.from({ length: 5 }, () => getRandomInt(50, 100))),
+        difficulty: getRandomInt(30, 90),
+        intent: ['informational', 'commercial', 'transactional', 'navigational'][getRandomInt(0, 3)],
+        relevance: getRandomInt(50, 95),
+        countries: JSON.stringify([
+          { country: 'United States', percentage: getRandomInt(25, 55) },
+          { country: 'United Kingdom', percentage: getRandomInt(10, 20) },
+          { country: 'Canada', percentage: getRandomInt(5, 15) },
+          { country: 'Australia', percentage: getRandomInt(5, 15) },
+          { country: 'Other', percentage: getRandomInt(10, 25) }
+        ])
       });
     }
   }
@@ -44,7 +64,17 @@ const generateRelatedKeywords = (baseKeyword: string): InsertKeyword[] => {
         volume: getRandomInt(800, 12000),
         competition: parseFloat((Math.random() * 0.9 + 0.1).toFixed(2)),
         cpc: parseFloat((Math.random() * 7 + 2).toFixed(2)),
-        trend: JSON.stringify(Array.from({ length: 5 }, () => getRandomInt(50, 100)))
+        trend: JSON.stringify(Array.from({ length: 5 }, () => getRandomInt(50, 100))),
+        difficulty: getRandomInt(25, 85),
+        intent: ['informational', 'commercial', 'transactional', 'navigational'][getRandomInt(0, 3)],
+        relevance: getRandomInt(55, 90),
+        countries: JSON.stringify([
+          { country: 'United States', percentage: getRandomInt(20, 50) },
+          { country: 'United Kingdom', percentage: getRandomInt(8, 18) },
+          { country: 'Canada', percentage: getRandomInt(8, 16) },
+          { country: 'Australia', percentage: getRandomInt(7, 14) },
+          { country: 'Other', percentage: getRandomInt(12, 28) }
+        ])
       });
     }
   }
@@ -64,7 +94,17 @@ const generateRelatedKeywords = (baseKeyword: string): InsertKeyword[] => {
         volume: getRandomInt(500, 8000),
         competition: parseFloat((Math.random() * 0.9 + 0.1).toFixed(2)),
         cpc: parseFloat((Math.random() * 7 + 2).toFixed(2)),
-        trend: JSON.stringify(Array.from({ length: 5 }, () => getRandomInt(50, 100)))
+        trend: JSON.stringify(Array.from({ length: 5 }, () => getRandomInt(50, 100))),
+        difficulty: getRandomInt(15, 70),
+        intent: 'informational', // Phrases are usually informational
+        relevance: getRandomInt(60, 85),
+        countries: JSON.stringify([
+          { country: 'United States', percentage: getRandomInt(30, 55) },
+          { country: 'United Kingdom', percentage: getRandomInt(10, 20) },
+          { country: 'Canada', percentage: getRandomInt(5, 15) },
+          { country: 'Australia', percentage: getRandomInt(5, 12) },
+          { country: 'Other', percentage: getRandomInt(8, 25) }
+        ])
       });
     }
   }
@@ -122,6 +162,12 @@ export const keywordService = {
       'Search Volume': item.volume,
       Competition: item.competition,
       'CPC ($)': item.cpc,
+      'Difficulty': item.difficulty,
+      'Intent': item.intent,
+      'Relevance': item.relevance,
+      'Countries': JSON.parse(item.countries)
+        .map(c => `${c.country}: ${c.percentage}%`)
+        .join(', '),
     }));
     
     return convertToCSV(formattedData);

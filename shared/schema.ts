@@ -36,6 +36,10 @@ export const keywords = pgTable("keywords", {
   competition: numeric("competition", { precision: 3, scale: 2 }).notNull(),
   cpc: numeric("cpc", { precision: 6, scale: 2 }).notNull(),
   trend: text("trend").notNull(), // Storing JSON as text instead of using array
+  difficulty: integer("difficulty").notNull(), // SEO difficulty score (0-100)
+  intent: text("intent").notNull(), // Search intent (informational, commercial, etc.)
+  relevance: integer("relevance").notNull(), // Relevance score (0-100)
+  countries: text("countries").notNull(), // Top countries as JSON string
 });
 
 export const insertKeywordSchema = createInsertSchema(keywords).pick({
@@ -44,6 +48,10 @@ export const insertKeywordSchema = createInsertSchema(keywords).pick({
   competition: true,
   cpc: true,
   trend: true,
+  difficulty: true,
+  intent: true,
+  relevance: true,
+  countries: true,
 });
 
 // Types

@@ -90,10 +90,26 @@ export class MemStorage implements IStorage {
 
   async createKeyword(keyword: InsertKeyword): Promise<Keyword> {
     const id = this.currentKeywordId++;
-    const newKeyword: Keyword = {
+    // Make sure all required fields are present (add defaults if needed)
+    const keywordWithDefaults = {
       ...keyword,
+      difficulty: keyword.difficulty ?? 50,
+      intent: keyword.intent ?? 'informational',
+      relevance: keyword.relevance ?? 70,
+      countries: keyword.countries ?? JSON.stringify([
+        { country: 'United States', percentage: 60 },
+        { country: 'United Kingdom', percentage: 15 },
+        { country: 'Canada', percentage: 10 },
+        { country: 'Australia', percentage: 8 },
+        { country: 'Other', percentage: 7 }
+      ])
+    };
+    
+    const newKeyword: Keyword = {
+      ...keywordWithDefaults,
       id,
     };
+    
     this.keywords.set(id, newKeyword);
     return newKeyword;
   }
