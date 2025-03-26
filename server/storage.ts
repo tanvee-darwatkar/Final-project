@@ -4,12 +4,23 @@ import {
   Waitlist, 
   InsertWaitlist, 
   Keyword, 
-  InsertKeyword
+  InsertKeyword,
+  User,
+  InsertUser
 } from "@shared/schema";
+import session from "express-session";
+import createMemoryStore from "memorystore";
 
 export interface IStorage {
+  // User methods
+  getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  
   // Search history methods
   getSearchHistory(): Promise<SearchHistory[]>;
+  getUserSearchHistory(userId: number): Promise<SearchHistory[]>;
   createSearchHistory(search: InsertSearchHistory): Promise<SearchHistory>;
   
   // Waitlist methods
@@ -20,23 +31,66 @@ export interface IStorage {
   getKeywordByName(keyword: string): Promise<Keyword | undefined>;
   getRelatedKeywords(keyword: string): Promise<Keyword[]>;
   createKeyword(keyword: InsertKeyword): Promise<Keyword>;
+  
+  // Session store
+  sessionStore: session.Store;
 }
 
 export class MemStorage implements IStorage {
+  private users: Map<number, User>;
   private searchHistory: Map<number, SearchHistory>;
   private waitlist: Map<number, Waitlist>;
   private keywords: Map<number, Keyword>;
+  private currentUserId: number;
   private currentSearchId: number;
   private currentWaitlistId: number;
   private currentKeywordId: number;
+  public sessionStore: session.Store;
 
   constructor() {
+    this.users = new Map();
     this.searchHistory = new Map();
     this.waitlist = new Map();
     this.keywords = new Map();
+    this.currentUserId = 1;
     this.currentSearchId = 1;
     this.currentWaitlistId = 1;
     this.currentKeywordId = 1;
+    
+    // Initialize the session store
+    const MemoryStore = createMemoryStore(session);
+    this.sessionStore = new MemoryStore({
+      checkPeriod: 86400000 // prune expired entries every 24h
+    });
+  }
+  
+  // User methods
+  async getUser(id: number): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+  
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      user => user.username.toLowerCase() === username.toLowerCase()
+    );
+  }
+  
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      user => user.email.toLowerCase() === email.toLowerCase()
+    );
+  }
+  
+  async createUser(user: InsertUser): Promise<User> {
+    const id = this.currentUserId++;
+    const newUser: User = {
+      ...user,
+      id,
+      createdAt: new Date(),
+      name: user.name || null
+    };
+    this.users.set(id, newUser);
+    return newUser;
   }
 
   // Search history methods
