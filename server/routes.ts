@@ -83,12 +83,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Export keywords endpoint
+  // Export keywords endpoint - with query parameter
   app.get("/api/keywords/export", async (req, res) => {
     try {
       const { keyword } = req.query;
       
       if (!keyword || typeof keyword !== 'string') {
+        return res.status(400).json({ message: "Valid keyword parameter is required" });
+      }
+      
+      const csvData = await keywordService.exportKeywords(keyword);
+      
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="keyword-data-${keyword}.csv"`);
+      res.send(csvData);
+    } catch (error) {
+      console.error("Error exporting keywords:", error);
+      res.status(500).json({ message: "Failed to export keywords" });
+    }
+  });
+  
+  // Export keywords endpoint - with URL parameter
+  app.get("/api/keywords/export/:keyword", async (req, res) => {
+    try {
+      const { keyword } = req.params;
+      
+      if (!keyword) {
         return res.status(400).json({ message: "Valid keyword parameter is required" });
       }
       
